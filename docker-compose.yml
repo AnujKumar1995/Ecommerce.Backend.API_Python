@@ -1,0 +1,136 @@
+services:
+  # --- Infrastructure ---
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - ecommerce-net
+
+  # --- Service Registry ---
+  service-registry:
+    build: ./service-registry
+    container_name: service-registry
+    ports:
+      - "8500:8500"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8500/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ecommerce-net
+
+  # --- API Gateway ---
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      REGISTRY_URL: http://service-registry:8500
+      JWT_SECRET: ecommerce-super-secret-key-2026
+    depends_on:
+      service-registry:
+        condition: service_started
+    networks:
+      - ecommerce-net
+
+  # --- Product Service ---
+  product-service:
+    build: ./product-service
+    container_name: product-service
+    ports:
+      - "8001:8001"
+    environment:
+      REGISTRY_URL: http://service-registry:8500
+      DETAIL_SERVICE_URL: http://product-detail-service:8002
+    depends_on:
+      service-registry:
+        condition: service_started
+      product-detail-service:
+        condition: service_started
+    networks:
+      - ecommerce-net
+
+  # --- Product Detail Service ---
+  product-detail-service:
+    build: ./product-detail-service
+    container_name: product-detail-service
+    ports:
+      - "8002:8002"
+    environment:
+      REGISTRY_URL: http://service-registry:8500
+    depends_on:
+      service-registry:
+        condition: service_started
+    networks:
+      - ecommerce-net
+
+  # --- Cart Service ---
+  cart-service:
+    build: ./cart-service
+    container_name: cart-service
+    ports:
+      - "8003:8003"
+    environment:
+      REGISTRY_URL: http://service-registry:8500
+      RABBITMQ_HOST: rabbitmq
+      PRODUCT_SERVICE_URL: http://product-service:8001
+    depends_on:
+      service-registry:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+      product-service:
+        condition: service_started
+    networks:
+      - ecommerce-net
+
+  # --- Order Service ---
+  order-service:
+    build: ./order-service
+    container_name: order-service
+    ports:
+      - "8004:8004"
+    environment:
+      REGISTRY_URL: http://service-registry:8500
+      RABBITMQ_HOST: rabbitmq
+    depends_on:
+      service-registry:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - ecommerce-net
+
+  # --- Notification Service ---
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+    ports:
+      - "8005:8005"
+    environment:
+      REGISTRY_URL: http://service-registry:8500
+      RABBITMQ_HOST: rabbitmq
+    depends_on:
+      service-registry:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - ecommerce-net
+
+networks:
+  ecommerce-net:
+    driver: bridge

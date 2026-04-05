@@ -1,0 +1,449 @@
+{
+	"info": {
+		"_postman_id": "ecommerce-microservices-2026",
+		"name": "E-Commerce Microservices",
+		"description": "Complete API collection for the E-Commerce Microservices Backend.\n\nFlow:\n1. Get auth token\n2. Manage products (admin)\n3. Manage product details (admin)\n4. Browse products (user)\n5. Add to cart & checkout\n6. View orders & notifications",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "admin_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Health Checks",
+			"item": [
+				{
+					"name": "API Gateway Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": ["{{base_url}}"],
+							"path": ["health"]
+						}
+					}
+				},
+				{
+					"name": "Service Registry - List Services",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8500/services",
+							"host": ["http://localhost:8500"],
+							"path": ["services"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Get Admin Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('admin_token', jsonData.access_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/token",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "token"]
+						}
+					}
+				},
+				{
+					"name": "Get User Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('user_token', jsonData.access_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"user1\",\n    \"password\": \"user123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/token",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "token"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Product Management (Admin)",
+			"item": [
+				{
+					"name": "List All Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/products?page=1&size=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Add New Product (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Wireless Headphones\",\n    \"category\": \"Electronics\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/products",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products"]
+						}
+					}
+				},
+				{
+					"name": "Get Product with Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/products/p001",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products", "p001"]
+						}
+					}
+				},
+				{
+					"name": "Delete Product (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/products/p003",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products", "p003"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Product Details (Admin)",
+			"item": [
+				{
+					"name": "Get Product Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/product-details/p001",
+							"host": ["{{base_url}}"],
+							"path": ["api", "product-details", "p001"]
+						}
+					}
+				},
+				{
+					"name": "Add/Update Product Details (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sizes\": [\"S\", \"M\", \"L\"],\n    \"price\": 39.99,\n    \"currency\": \"USD\",\n    \"design\": \"Abstract Pattern\",\n    \"material\": \"Polyester Blend\",\n    \"weight\": \"180g\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/product-details/p001",
+							"host": ["{{base_url}}"],
+							"path": ["api", "product-details", "p001"]
+						}
+					}
+				},
+				{
+					"name": "Delete Product Details (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/product-details/p003",
+							"host": ["{{base_url}}"],
+							"path": ["api", "product-details", "p003"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Cart & Checkout",
+			"item": [
+				{
+					"name": "Add Item to Cart",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"product_id\": \"p001\",\n    \"quantity\": 2\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/cart/user1/items",
+							"host": ["{{base_url}}"],
+							"path": ["api", "cart", "user1", "items"]
+						}
+					}
+				},
+				{
+					"name": "Add Another Item to Cart",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"product_id\": \"p002\",\n    \"quantity\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/cart/user1/items",
+							"host": ["{{base_url}}"],
+							"path": ["api", "cart", "user1", "items"]
+						}
+					}
+				},
+				{
+					"name": "View Cart",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/cart/user1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "cart", "user1"]
+						}
+					}
+				},
+				{
+					"name": "Remove Item from Cart",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/cart/user1/items/p002",
+							"host": ["{{base_url}}"],
+							"path": ["api", "cart", "user1", "items", "p002"]
+						}
+					}
+				},
+				{
+					"name": "Checkout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"shipping_address\": \"123 Main St, Bangalore, 560001\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/cart/user1/checkout",
+							"host": ["{{base_url}}"],
+							"path": ["api", "cart", "user1", "checkout"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Orders",
+			"item": [
+				{
+					"name": "Get User Orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/orders/user1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "orders", "user1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "6. Notifications",
+			"item": [
+				{
+					"name": "Get All Notifications",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8005/notifications",
+							"host": ["http://localhost:8005"],
+							"path": ["notifications"]
+						}
+					}
+				},
+				{
+					"name": "Get User Notifications",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8005/notifications?user_id=user1",
+							"host": ["http://localhost:8005"],
+							"path": ["notifications"],
+							"query": [
+								{"key": "user_id", "value": "user1"}
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}
