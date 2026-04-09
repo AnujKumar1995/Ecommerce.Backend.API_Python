@@ -13,61 +13,61 @@ erDiagram
     %% ===== SERVICE REGISTRY DOMAIN =====
     SERVICE_INSTANCE {
         string service_id PK "Auto-generated UUID"
-        string name "e.g. api-gateway, product-service"
+        string name "Service name"
         string host "Hostname or IP"
         int port "Service port number"
-        string status "UP | DOWN"
-        datetime registered_at "Registration timestamp"
-        datetime last_heartbeat "Last heartbeat timestamp"
-        json metadata "Optional metadata dict"
+        string status "UP or DOWN"
+        string registered_at "Registration timestamp"
+        string last_heartbeat "Last heartbeat timestamp"
+        string metadata "Optional metadata dict"
     }
 
     %% ===== PRODUCT DOMAIN =====
     PRODUCT {
-        string id PK "e.g. p001, UUID for new"
+        string id PK "Product identifier"
         string name "Product display name"
-        string category "e.g. Apparel, Footwear"
-        boolean active "true = visible in catalog"
+        string category "Apparel or Footwear etc"
+        string active "true if visible in catalog"
     }
 
     PRODUCT_DETAIL {
-        string product_id PK_FK "References PRODUCT.id"
-        list sizes "e.g. [S, M, L, XL]"
+        string product_id FK "References PRODUCT id"
+        string sizes "Available sizes list"
         float price "Unit price"
-        string currency "e.g. USD"
-        string design "e.g. Solid Navy Blue"
-        string material "e.g. 100% Cotton"
-        string weight "e.g. 200g"
+        string currency "Currency code"
+        string design "Design description"
+        string material "Material description"
+        string weight "Weight of product"
     }
 
     %% ===== CART DOMAIN =====
     CART {
         string user_id PK "Owner of the cart"
-        int item_count "Derived: number of unique items"
-        float total "Derived: sum of item prices x qty"
+        int item_count "Number of unique items"
+        float total "Sum of item prices x qty"
     }
 
     CART_ITEM {
-        string user_id PK_FK "References CART.user_id"
-        string product_id PK_FK "References PRODUCT.id"
+        string user_id FK "References CART user_id"
+        string product_id FK "References PRODUCT id"
         int quantity "Number of units"
         string product_name "Cached product name"
-        float price "Cached unit price at time of add"
+        float price "Unit price at time of add"
     }
 
     %% ===== ORDER DOMAIN =====
     ORDER {
-        string order_id PK "e.g. ord-xxxxxxxx"
+        string order_id PK "Order identifier"
         string user_id FK "User who placed the order"
         float total "Order total amount"
         string shipping_address "Delivery address"
-        string status "CREATED | CONFIRMED | SHIPPED | DELIVERED"
-        datetime created_at "Order creation timestamp"
+        string status "CREATED or CONFIRMED or SHIPPED"
+        string created_at "Order creation timestamp"
         string correlation_id "Distributed tracing ID"
     }
 
     ORDER_ITEM {
-        string order_id PK_FK "References ORDER.order_id"
+        string order_id FK "References ORDER order_id"
         string product_id PK "Product in the order"
         int quantity "Quantity ordered"
         string product_name "Product name at time of order"
@@ -76,20 +76,20 @@ erDiagram
 
     %% ===== USER DOMAIN (API Gateway) =====
     USER {
-        string username PK "e.g. admin, user1, user2"
+        string username PK "Unique username"
         string password "Hashed password"
-        string role "admin | user"
+        string role "admin or user"
     }
 
     %% ===== NOTIFICATION DOMAIN =====
     NOTIFICATION {
         string id PK "Auto-generated UUID"
-        string event_type "e.g. notification.order_placed"
+        string event_type "Event type name"
         string user_id FK "Target user"
         string message "Notification message text"
         string order_id FK "Related order ID"
         string correlation_id "Distributed tracing ID"
-        datetime received_at "When notification was received"
+        string received_at "When notification was received"
         string status "DELIVERED"
     }
 
@@ -100,23 +100,23 @@ erDiagram
     }
 
     QUEUE {
-        string name PK "order_events | notification_events"
-        string binding_key "order.* | notification.*"
+        string name PK "Queue name"
+        string binding_key "Routing key pattern"
     }
 
     EVENT_MESSAGE {
-        string event_type PK "order.created | notification.order_placed"
+        string event_type PK "Event type identifier"
         string routing_key "Routing key for topic exchange"
         string order_id "Related order ID"
         string user_id "Related user ID"
-        json payload "Full event payload"
-        datetime timestamp "Event timestamp"
+        string payload "Full event payload JSON"
+        string timestamp "Event timestamp"
     }
 
     %% ===== RATE LIMITING DOMAIN =====
     RATE_LIMIT_ENTRY {
         string client_ip PK "Client IP address"
-        list request_timestamps "Timestamps within 60s window"
+        string request_timestamps "Timestamps within 60s window"
     }
 
     %% ========== RELATIONSHIPS ==========
